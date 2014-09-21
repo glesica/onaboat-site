@@ -32,7 +32,7 @@
           if (map.hasLayer(heatLayer)) {
                   map.removeLayer(heatLayer);
             }
-          heatLayer = L.heatLayer(heatData, {maxZoom: 18, radius: 25, blur: 85, max: 0.01}).addTo(map);
+          heatLayer = L.heatLayer(heatData, {maxZoom: 18, radius: 25, blur: 65}).addTo(map);
 
           var geojson = { type: 'FeatureCollection', features: [] };
           
