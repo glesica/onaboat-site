@@ -26,14 +26,8 @@
 
       function dataToMarkers(data) {
           data = JSON.parse(data);
-          var keep = false;
           var heatData = data.map(function(o) {
-                  keep = !keep;
-              if (keep || o.lat < 48.036974867884936) {
                 return [o.lat, o.lon];
-              } else {
-                return [o.lat - 0.02, o.lon - 0.02];
-              }
           });
           if (map.hasLayer(heatLayer)) {
                   map.removeLayer(heatLayer);
