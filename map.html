@@ -4,26 +4,42 @@
     <title>On A Boat App</title>
     <script src="https://api.tiles.mapbox.com/mapbox.js/v2.0.0/mapbox.js"></script>
     <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/v2.0.0/mapbox.css">
-    <link rel="stylesheet" href="/css/map.css">
+    <link rel="stylesheet" href="css/map.css">
     <link rel="stylesheet" href="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css">
     <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js"></script>
     <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js"></script>
     <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-heat/v0.1.0/leaflet-heat.js'></script>
   </head>
 
   <body>
     <div id="map"></div>
     <script>
       L.mapbox.accessToken = 'pk.eyJ1IjoibHlvbndqIiwiYSI6IndwUXlLUjQifQ.DIiytYUASOcXjKdpXW8S-Q';
-      var map = L.mapbox.map('map', 'lyonwj.j5m52ga3').setView([47.9017, -114.1042], 10);
+      var map = L.mapbox.map('map', 'lyonwj.j5m52ga3').setView([48.035683559460885, -114.21627044677734], 15);
 
       var featureGroup = L.featureGroup().addTo(map);
       var dataLayer = L.mapbox.featureLayer().addTo(map);
+      var heatLayer = L.heatLayer([]).addTo(map);
       var current_poly;
-      var url = "http://192.241.222.136:7474/scdemo/scdemo/intersects"
+      var url = "http://192.241.222.136:7474/scdemo/scdemo/onaboat/intersects"
 
       function dataToMarkers(data) {
-          data = JSON.parse(data)       
+          data = JSON.parse(data);
+          var keep = false;
+          var heatData = data.map(function(o) {
+                  keep = !keep;
+              if (keep || o.lat < 48.036974867884936) {
+                return [o.lat, o.lon];
+              } else {
+                return [o.lat - 0.02, o.lon - 0.02];
+              }
+          });
+          if (map.hasLayer(heatLayer)) {
+                  map.removeLayer(heatLayer);
+            }
+          heatLayer = L.heatLayer(heatData, {maxZoom: 18, radius: 25, blur: 85, max: 0.01}).addTo(map);
+
           var geojson = { type: 'FeatureCollection', features: [] };
           
           for (var i = 0; i < data.length; i++) {
@@ -43,21 +59,8 @@
           });
       }
         dataLayer.setGeoJSON([]);
-        dataLayer.setGeoJSON(geojson);
+        //dataLayer.setGeoJSON(geojson);
         }
-        
-      $("#category").change(function() {
-        if (current_poly){
-        
-          data = {polygon: current_poly, category: $("#category").val()}
-          $.ajax({
-            url: url,
-            data: data,
-            success: dataToMarkers
-            //dataType: dataType
-          });
-          }
-        });
         
       var drawControl = new L.Control.Draw({
         edit: {
@@ -83,7 +86,6 @@
       }
       function showPolygonMarkers(e) {
         console.log(e);
-        console.log($("#category").val());
         featureGroup.clearLayers();
         featureGroup.addLayer(e.layer);
         
@@ -97,7 +99,7 @@
         
         
         current_poly = wkt
-        data = {polygon: wkt, category: $("#category").val()}
+        data = {polygon: wkt}
         success = function(data){
           console.log(data)
         }
